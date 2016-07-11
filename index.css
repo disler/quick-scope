@@ -1,0 +1,56 @@
+body {
+    -webkit-app-region: drag;
+}
+
+.output-container{
+	
+}.output-inner-container{
+	position:absolute;
+	right:25px;
+	top:30%;
+	text-align: left;
+	height:30px;
+	font-size:20px;
+	color:#3a2;
+	transition: all 1s ease;
+}
+
+.input-container{
+	position:relative;
+	font-size:20px;
+}#script-input{
+	position:absolute;
+	width:830px;
+	height:50px;
+	font-size:23px;
+	outline:0;
+	border:0;
+	border-left: 3px solid #555;
+	border-right: 3px solid #555;
+	padding:15px 15px 15px 35px;
+	background-color:rgba(0,0,0,0);
+	letter-spacing: 1px;
+	z-index:11;
+}#script-pretext{
+	position:absolute;
+	font-size:20px;
+	z-index:111;
+	height:50px;
+	margin:15px 15px 15px 15px;
+	line-height:50px;
+}
+
+#script-input-fader{
+	position:absolute;
+	width:830px;
+	height:50px;
+	font-size:23px;
+	outline:0;
+	border:0;
+	border-left: .5px solid #aaa;
+	padding:15px 15px 15px 35px;
+	letter-spacing: 1px;
+	color:rgba(0,0,0, .5);
+	background-color:rgba(0,0,0,0);
+	z-index:11;
+}
