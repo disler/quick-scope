@@ -19,7 +19,7 @@ const $ = require('jquery');
 const dew = new (require('./DEW.js').DEW)();
 
 //load script hooks
-const lstScriptHooks = dew.LoadScripts();
+let lstScriptHooks = dew.LoadScripts();
 
 //nodejs process starter
 let exec = require('child_process').exec;
@@ -194,6 +194,9 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 				const sCommandName = lstArgs[1];
 				let sScriptPath = "";
 
+				//load the script hooks looking for any new scripts
+				lstScriptHooks = dew.LoadScripts();
+
 				//find the command name
 				let oCommand = lstScriptHooks.find(oScript => 
 				{
@@ -263,15 +266,18 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 				//argument count check
 				if(lstArgs.length === 3)
 				{
-					let bSuccess = dew.CreateScriptHook(lstArgs[1], lstArgs[2]);
+					let oResult = dew.CreateScriptHook(lstArgs[1], lstArgs[2]);
 
-					if(bSuccess)
+					if(oResult.bResult)
 					{
-						$scope.HandleOutput(`Script ${lstArgs[1]} created`, "success");
+						$scope.HandleOutput(`Script '${lstArgs[1]}' created`, "success");
 					}
 					else
 					{
-						$scope.HandleOutput(`Error creating Script ${lstArgs[1]}, try again`, "error");
+						if(oResult.sError)
+							$scope.HandleOutput(oResult.sError, "error");
+						else
+							$scope.HandleOutput(`Error creating Script '${lstArgs[1]}', try again`, "error");
 					}
 				}
 				else
@@ -281,16 +287,26 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 				}
 			}
 			//remove a script
-			else if(sAction === "r" || sAction === "remove")
+			else if(sAction === "r" || sAction === "rm" || sAction === "remove")
 			{
 				if(lstArgs.length == 2)
 				{
-					let bResult = dew.RemoveScriptHook(lstArgs[1]);
-
-					if(bResult)
-						$scope.HandleOutput(`Script ${lstArgs[1]} removed`, "success");
+					if(lstArgs[1] === "*")
+					{
+						dew.RemoveAllScripts();
+						$scope.HandleOutput("Removed all scripts");
+					}
 					else
-						$scope.HandleOutput(`Script ${lstArgs[1]} could not be removed`, "error");
+					{
+
+						let bResult = dew.RemoveScriptHook(lstArgs[1]);
+
+						if(bResult)
+							$scope.HandleOutput(`Script ${lstArgs[1]} removed`, "success");
+						else
+							$scope.HandleOutput(`Script ${lstArgs[1]} could not be removed`, "error");
+
+					}
 				}
 				else
 				{
@@ -343,6 +359,17 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 		$scope.safeApply();
 	}
 
+	/*
+		Handle the on drop event with our scope
+	*/
+	$scope.HandleOnDropEvent = function(sFilePath)
+	{
+		let sBaseFile = path.parse(path.basename(sFilePath)).name;
+		let sInputFormatted = `n ${sBaseFile} ${sFilePath}`;
+
+		$scope.HandleInput(sInputFormatted);
+	}
+
 	/*		JQUERY		*/
 
 	/*
@@ -364,6 +391,29 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 		    $scope.HandleInputCommandEvent({charCode : 40});
 		}
 	});
+
+	/*	Vaninlla */
+
+	/*
+		On drag over do nothing
+	*/
+	document.ondragover = document.ondrop = function(ev)
+	{
+  		ev.preventDefault();
+	}
+
+	/*
+		Create a save file string line
+	*/
+	document.body.ondrop = (ev) => {
+		let sFilePath = ev.dataTransfer.files[0].path;
+
+		//create correctly formatted output to create
+		$scope.HandleOnDropEvent(sFilePath);
+
+	  	ev.preventDefault();
+	}
+
 });
 
 /*		Raw VJS Functions	*/

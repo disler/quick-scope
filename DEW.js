@@ -50,7 +50,15 @@ var DEW = function()
 
 		let lstScriptWithRemoved = lstScripts.filter(_=>
 		{
-			return _.name !== sScriptHookName;
+			if(_.name !== sScriptHookName)
+			{
+				return true;
+			}
+			else
+			{
+				fs.unlink(_.path);
+				return false;
+			}
 		});
 
 		if(lstScriptWithRemoved.length != lstScripts.length)
@@ -63,13 +71,28 @@ var DEW = function()
 	}
 
 	/*
+		Removes all scripts by deleting all filesand overwriting the file completely
+	*/
+	this.RemoveAllScripts = function()
+	{
+		let lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+		lstScripts.forEach(_=> {
+			try{ fs.unlink(_.path) }catch(e){}
+		});
+		fs.writeFileSync(this.RUNNABLE_SCRIPT_FILE, JSON.stringify([]));
+	}
+
+	/*
 		Save a new script to be fired off
 		Copy old script into file location an create a new reference in the scriptHooks file
 	*/
 	this.CreateScriptHook = function(sScriptAlias, sPathToScript)
 	{
-
 		let sFileName = path.basename(sPathToScript);
+		let lstCurrentCommands = this.LoadScripts();
+
+		if(lstCurrentCommands.find(_=>_.name == sScriptAlias || _.path == sPathToScript))
+			return {bResult : false, sError : "Script with that alias or file name already exists"};
 
 		if(sFileName)
 		{
@@ -79,13 +102,16 @@ var DEW = function()
 			if(sExt === "py")
 				sFiringCommand = "python";
 
+			let sPath = path.resolve(__dirname, this.RUNNABLE_SCRIPT_DIR, sFileName);
+
+			fs.copySync(path.resolve(sPathToScript), sPath);
+
 			let oNewScript = {
 				"name" : sScriptAlias,
 				"fire" : `${sFiringCommand} runnables/${sFileName}`,
-				"command" : "o"
+				"command" : "o",
+				"path" : sPath
 			};
-
-			fs.copySync(path.resolve(sPathToScript), path.resolve(__dirname, this.RUNNABLE_SCRIPT_DIR, sFileName));
 
 			//load in the command anaylitics file
 			let lstScriptHook = JSON.parse(fs.readFileSync(this.RUNNABLE_SCRIPT_FILE));
@@ -94,10 +120,10 @@ var DEW = function()
 
 			fs.writeFileSync(this.RUNNABLE_SCRIPT_FILE, JSON.stringify(lstScriptHook));
 
-			return true;
+			return {bResult : true};
 		}
 		else
-			return false;
+			return {bResult : false};
 	}
 
 	/*
