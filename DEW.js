@@ -183,6 +183,19 @@ var DEW = function()
 	}
 
 	/*
+		Predict a command from history of fully entered commands
+	*/
+	this.PredictCommandFromHistory = function(sCommand, lstPreviousFullyEnteredCommands)
+	{
+		let lstPreviousCommandMatch = lstPreviousFullyEnteredCommands.filter(_=> _.indexOf(sCommand) !== -1);
+
+		if(lstPreviousCommandMatch.length > 0)
+			return lstPreviousCommandMatch[0];
+		else
+			return "";
+	}
+
+	/*
 		Get list of command occurrence
 	*/
 	this.GetCommandOccurrence = function()

@@ -101,6 +101,7 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 			let sCommand = $scope.oViewBag.sInput;
 			$scope.oViewBag.sInput = "";
 			$scope.oViewBag.sInputIntellisense = "";
+			$scope.oHistoryBag.iPreviousEnteredCommandIndex = -1;
 			$scope.HandleInputCommand(sCommand);
 			$scope.AddToCommandHistory(sCommand);
 		}
@@ -156,15 +157,26 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 			//get the command name that was typed thus far
 			let sCommandNameTypedSoFar = lstCommand[1];
 
-			//try to predict
-			let sCommandNamePrediction = dew.PredictCommand(sCommandNameTypedSoFar);
+			//try to predict from history first, then from commands
+			let sHistoryCompletePrediction = dew.PredictCommandFromHistory(sCommandNameTypedSoFar, $scope.oHistoryBag.lstPreviousEnteredCommands);
 
-			//if we have a prediction
-			if(sCommandNamePrediction)
-				$scope.oViewBag.sInputIntellisense = `${lstCommand[0]} ${sCommandNamePrediction}`;
+			//if we have a historic prediction use that
+			if(sHistoryCompletePrediction !== "")
+			{
+				$scope.oViewBag.sInputIntellisense = sHistoryCompletePrediction;
+			}
+			//if we have no historic prediction fall back to just printing out the command alias
 			else
-				$scope.oViewBag.sInputIntellisense = "";
+			{
+				//try to predict
+				let sCommandNamePrediction = dew.PredictCommand(sCommandNameTypedSoFar);
 
+				//if we have a prediction
+				if(sCommandNamePrediction)
+					$scope.oViewBag.sInputIntellisense = `${lstCommand[0]} ${sCommandNamePrediction}`;
+				else
+					$scope.oViewBag.sInputIntellisense = "";
+			}
 		}
 		else
 		{

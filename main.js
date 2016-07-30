@@ -24,10 +24,12 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     width: 900, 
     height: 100, 
+    maxHeight: 100,
+    minWidth: 930,
     x:300,
     y:725,
     frame:false, 
-    resizable:false,
+    resizable:true,
     icon: path.join(`${__dirname}`, 'img', 'd.ico')
   });
 
@@ -35,7 +37,7 @@ function createWindow () {
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   //register alt+o to focus this app
   globalShortcut.register('alt+o', function()
