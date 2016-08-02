@@ -5,8 +5,8 @@
     <title>Quick Scope</title>
     <link rel="stylesheet" type="text/css" href="./index.css">
   </head>
-  <body ng-app="indexApp">
-    <div class="container" ng-controller="indexController">
+  <body ng-app="indexApp" >
+    <div class="container" ng-controller="indexController" >
       <div id="dragger">
         
       </div>
@@ -16,7 +16,7 @@
       <div id="input-container">
         <div id="script-pretext" >></div>
         <input id="script-input-fader" ng-model="oViewBag.sInputIntellisense" readonly disabled="disabled"/>
-        <input ng-keypress="HandleInputCommandEvent($event)" ng-change="HandleInputChangeEvent()" ng-model="oViewBag.sInput"  type="text" id="script-input"  autofocus />
+        <input style="border-left:5px solid {{oViewBag.sInputColor}}" ng-keypress="HandleInputCommandEvent($event)"  ng-change="HandleInputChangeEvent()" ng-model="oViewBag.sInput"  type="text" id="script-input"  autofocus />
         <div class="output-inner-container" style="color:{{oViewBag.sOutputColor}}">
           {{oViewBag.sOutput}}
         </div>

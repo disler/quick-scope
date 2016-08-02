@@ -43,6 +43,7 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 		sInput : "",
 		sOutput : "Welcome to Quick Scope",
 		sOutputColor : "#000",
+		sInputColor : "#555",
 		sInputIntellisense : "",
 		oScriptOutput : {
 			lstOutput : [],
@@ -299,8 +300,8 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 
 					console.log("sScriptNamesSepByComma: ", sScriptNamesSepByComma);
 
-					$scope.HandleInput(sScriptNamesSepByComma);
-					$scope.HandleOutput("Scripts displaying");
+					clipboard.writeText(sScriptNamesSepByComma);
+					$scope.HandleOutput("Scripts copied to clipboard");
 					$scope.safeApply();
 				}
 				else
@@ -399,10 +400,13 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 		$scope.oViewBag.sOutputColor = sType == "error" ? "#F33" : sType == "success" ? "#3F3" : "#000";
 		$scope.oViewBag.sOutput = sMessage;
 
+		$scope.oViewBag.sInputColor =  sType == "error" ? "#F33" : sType == "success" ? "#3F3" : "#555";
+
 		//fade to default color
 		setTimeout(function()
 		{
 			$scope.oViewBag.sOutputColor = "#999";
+			$scope.oViewBag.sInputColor = "#555";
 			$scope.safeApply();
 		}, 2000);
 
