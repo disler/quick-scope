@@ -6,6 +6,9 @@ const electron = require('electron')
 //browser window
 const BrowserWindow = require("electron").remote.BrowserWindow;
 
+//clipboard functionality
+const clipboard = electron.clipboard;
+
 //path library
 const path = require('path');
 
@@ -24,6 +27,11 @@ let lstScriptHooks = dew.LoadScripts();
 //nodejs process starter
 let exec = require('child_process').exec;
 
+//augmentive quick scope arguments
+const AUG_ARGS = {
+	COPY_TO_OUTPUT : "--c"
+};
+
 /*
 	Begin angularjs
 */
@@ -35,7 +43,11 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 		sInput : "",
 		sOutput : "Welcome to Quick Scope",
 		sOutputColor : "#000",
-		sInputIntellisense : ""
+		sInputIntellisense : "",
+		oScriptOutput : {
+			lstOutput : [],
+			bShow : true
+		}
 	};
 
 	//list of commands that were entered
@@ -219,22 +231,48 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 				if(oCommand)
 				{
 					//see if we've got additional arguments
-					const sFireArguments = ParseFireArguments(lstArgs);
+					let lstFunctionalArgs, lstFilteredArgs;
+
+					//parse Quick Scope specific arguments
+					[lstFunctionalArgs, lstFilteredArgs] = ParseAugmentiveArguments(lstArgs);
+
+					const sFireArguments  = ParseFireArguments(lstFilteredArgs)
+
+					console.log("sFireArguments: ", sFireArguments);
 
 					//combine the fire and possible firing arguments
 					let sFire = oCommand.fire + " " + sFireArguments;
 
+					console.log("sFire: ", sFire);
+
 					//fire the process
 					let process = exec(sFire, function(error, stdout, stderr)
 					{
-						if(error) console.log("error: ", error);
-						if(stdout) console.log("stdout: ", stdout);
+						//if the output was copied to clip board
+						let bCopiedToClipboard = false;
+
+						if(error) 
+						{
+							console.log("error: ", error);
+							$scope.HandleOutput("Error launching script", "error");
+						}
+						if(stdout) {
+
+							if(lstFunctionalArgs.indexOf(AUG_ARGS.COPY_TO_OUTPUT) !== -1)
+							{
+								bCopiedToClipboard = true;
+								clipboard.writeText(stdout);
+							}
+
+							console.log("stdout: ", stdout);
+						}
 						if(stderr) console.log("stderr: ", stderr);
 
 						//on success notify ui and save execution data
 						if(!error)
 						{
-							$scope.HandleOutput("Script launched", "success", true);
+							const sSuccessMessage = bCopiedToClipboard ? "Script launched - output on clipboard" : "Script launched";
+							$scope.HandleOutput(sSuccessMessage, "success", true);
 							dew.IncreaseCommandOccurrence(oCommand.name);
 						}
 					});
@@ -448,4 +486,27 @@ function ParseFireArguments(lstArgs)
 	}
 
 	return sFiringArgs;
+}
+
+/*
+	finds and returns both the augmentitive arguments and filters them out of the function arguments
+*/
+function ParseAugmentiveArguments(lstArgs)
+{
+	let lstFilteredArgs = [];
+	let lstAugmentitiveArgs = [];
+
+	//semi functional, alteres the state of lstAugmentitive to avoid O(n) again
+	lstFilteredArgs = lstArgs.filter(sArgument =>
+	{
+		if(sArgument === AUG_ARGS.COPY_TO_OUTPUT)
+		{
+			lstAugmentitiveArgs.push(sArgument);
+			return false;
+		}
+		else
+			return true;	
+	});
+
+	return [lstAugmentitiveArgs, lstFilteredArgs];
 }

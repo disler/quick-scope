@@ -5,9 +5,15 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 //path lib
 const path = require('path');
+//config
+const oConfig = {
+  bDevConsole : true,
+  bReload : false
+};
 
 //Auto reloading
-// require('electron-reload')(__dirname);
+if(true === oConfig.bReload)
+  require('electron-reload')(__dirname);
 
 //global short cut
 const globalShortcut = electron.globalShortcut;
@@ -37,7 +43,8 @@ function createWindow () {
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  if(true === oConfig.bDevConsole)
+    mainWindow.webContents.openDevTools()
 
   //register alt+o to focus this app
   globalShortcut.register('alt+o', function()
