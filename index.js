@@ -202,7 +202,7 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 	*/
 	$scope.HandleInputCommand = function(sCommand)
 	{
-		let lstArgs = sCommand.split(" ");
+		let lstArgs = sCommand.match(/(?:[^\s"]+|"[^"]*")+/g);
 
 		//if we received only 1 argument
 		if(lstArgs.length < 1)
@@ -362,6 +362,34 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 				else
 				{
 					$scope.HandleOutput("Incorrect number of arguments try - 'r <script to remove>'");
+				}
+			}
+			//dump the contents of the file to the clip board
+			else if(sAction === "dump" || sAction === "dp")
+			{
+				//if we have a file to read in
+				if(lstArgs.length === 2)
+				{
+					const sScriptName = lstArgs[1];
+
+					const sFileContents = dew.GetScriptContent(sScriptName);
+
+					if(sFileContents)
+					{
+						console.log("sFileContents: ", sFileContents);
+
+						clipboard.writeText(sFileContents);
+
+						$scope.HandleOutput("Contents copied to clipboard", "success");
+					}
+					else
+					{
+						$scope.HandleOutput("Could not find file or an error occurred", "error");
+					}
+				}
+				else
+				{
+					$scope.HandleOutput("Incorrect number of args try - 'dump <script name to read to clipboard>'", "error");
 				}
 			}
 			else

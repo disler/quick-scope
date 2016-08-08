@@ -18,6 +18,25 @@ var DEW = function()
 	this.RUNNABLE_SCRIPT_DIR = "./runnables";
 
 	/*
+		return the content of a file
+	*/
+	this.GetScriptContent = function(sScriptName)
+	{
+		let sContents = "";
+		
+		const lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+
+		const oScriptData = lstScripts.find(_=>_.name === sScriptName);
+
+		if(oScriptData)
+		{
+			sContents = fs.readFileSync(oScriptData.path, 'utf8');
+		}
+
+		return sContents;
+	}
+
+	/*
 		Load scripts
 	*/
 	this.LoadScripts = function()
