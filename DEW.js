@@ -9,13 +9,46 @@ var path = require('path')
 var DEW = function()
 {
 	//path to analytics file
-	this.COMMAND_ANALYTICS_FILE = "./data/commandAnalytics.json";
+	this.COMMAND_ANALYTICS_FILE = path.join("runnables", "commandAnalytics.json");
 
 	//path to runnable scripts file locations
-	this.RUNNABLE_SCRIPT_FILE = "./runnables/scriptHooks.json";
+	this.RUNNABLE_SCRIPT_FILE = path.join("runnables", "scriptHooks.json");
 
 	//path to runnable scripts	
-	this.RUNNABLE_SCRIPT_DIR = "./runnables";
+	this.RUNNABEL_SCRIPT_DIR = "runnables";
+
+	//app root to be set once
+	this.APPLICATION_ROOT = "";
+	
+	/*
+		Set the application root and if directories do not exist create them
+	*/
+	this.SetRootDir = function(sApplicationRoot)
+	{
+		this.APPLICATION_ROOT = sApplicationRoot;
+
+		//set other paths
+		this.COMMAND_ANALYTICS_FILE = path.join(this.APPLICATION_ROOT, this.COMMAND_ANALYTICS_FILE);
+		this.RUNNABLE_SCRIPT_FILE = path.join(this.APPLICATION_ROOT, this.RUNNABLE_SCRIPT_FILE);
+		this.RUNNABEL_SCRIPT_DIR = path.join(this.APPLICATION_ROOT, this.RUNNABEL_SCRIPT_DIR);
+
+		//create runnable scripts directory if not eixsts 
+		if(!fs.existsSync(this.RUNNABEL_SCRIPT_DIR))
+		{
+			fs.mkdirSync(this.RUNNABEL_SCRIPT_DIR);
+		}
+
+		if(!fs.existsSync(this.RUNNABLE_SCRIPT_FILE))
+		{
+			fs.writeFileSync(this.RUNNABLE_SCRIPT_FILE, "[]"); 
+		}
+
+		if(!fs.existsSync(this.COMMAND_ANALYTICS_FILE))
+		{
+			fs.writeFileSync(this.COMMAND_ANALYTICS_FILE, "[]"); 
+		}
+
+	}
 
 	/*
 		return the content of a file
@@ -24,7 +57,7 @@ var DEW = function()
 	{
 		let sContents = "";
 		
-		const lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+		const lstScripts = JSON.parse(fs.readFileSync(this.RUNNABLE_SCRIPT_FILE));
 
 		const oScriptData = lstScripts.find(_=>_.name === sScriptName);
 
@@ -43,7 +76,7 @@ var DEW = function()
 	{
 		let lstScripts = [];
 
-		lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+		lstScripts = JSON.parse(fs.readFileSync(this.RUNNABLE_SCRIPT_FILE));
 
 		return lstScripts;
 	}
@@ -65,7 +98,7 @@ var DEW = function()
 	*/
 	this.RemoveScriptHook = function(sScriptHookName)
 	{
-		let lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+		let lstScripts = JSON.parse(fs.readFileSync(this.RUNNABLE_SCRIPT_FILE));
 
 		let lstScriptWithRemoved = lstScripts.filter(_=>
 		{
@@ -94,7 +127,7 @@ var DEW = function()
 	*/
 	this.RemoveAllScripts = function()
 	{
-		let lstScripts = JSON.parse(fs.readFileSync(path.join(__dirname, this.RUNNABLE_SCRIPT_FILE)));
+		let lstScripts = JSON.parse(fs.readFileSync(this.RUNNABLE_SCRIPT_FILE));
 		lstScripts.forEach(_=> {
 			try{ fs.unlink(_.path) }catch(e){}
 		});
@@ -118,18 +151,26 @@ var DEW = function()
 			let sExt = sFileName.split(".")[1];
 			let sFiringCommand;
 
+			//if we're working with python set the opening command to be 'python'
 			if(sExt === "py")
 				sFiringCommand = "python";
+			//if we're working with anything else just run the path to the file ie open it
+			else
+				sFiringCommand = "start";
+			console.log("(this.RUNNABEL_SCRIPT_DIR: ", (this.RUNNABEL_SCRIPT_DIR));
+			console.log("sFileName: ", sFileName);
+			let sPath = path.join(this.RUNNABEL_SCRIPT_DIR, sFileName);
 
-			let sPath = path.resolve(__dirname, this.RUNNABLE_SCRIPT_DIR, sFileName);
+			//local windows path
+			const sLocalPath = `${this.RUNNABEL_SCRIPT_DIR}/${sFileName}`;
 
 			fs.copySync(path.resolve(sPathToScript), sPath);
 
 			let oNewScript = {
 				"name" : sScriptAlias,
-				"fire" : `${sFiringCommand} runnables/${sFileName}`,
+				"fire" : `${sFiringCommand} ${sPath}`,
 				"command" : "o",
-				"path" : sPath
+				"path" : sLocalPath
 			};
 
 			//load in the command anaylitics file
@@ -264,4 +305,34 @@ var DEW = function()
 	}
 }
 
+/*
+	Smaller logger class 
+*/
+var Logger = function()
+{
+	//logger file location
+	this.LOG_LOCATION = "./data/log.txt";
+	
+	/*
+		Log to logging file
+	*/
+	this.FLog = function(sContent)
+	{
+		const sDate = this.FormatDate();
+		const sFormmattedOutput = `${sDate} ::: ${sContent}\n`;
+		fs.appendFile(this.LOG_LOCATION, sFormmattedOutput);
+	}
+
+	/*
+		Stupid date formatting should just use moment
+	*/
+	this.FormatDate = function()
+	{
+	    var date = new Date();
+	    var str = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+	    return str;
+	}
+}
+
+module.exports.Logger = Logger;
 module.exports.DEW = DEW;

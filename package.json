@@ -4,7 +4,8 @@
   "description": "Quickly run custom scripts",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build" : "build --x64 --publish never" 
   },
   "author": "disler",
   "license": "CC0-1.0",

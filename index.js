@@ -3,6 +3,14 @@
 // All of the Node.js APIs are available in this process.
 const electron = require('electron')
 
+//talk to main proc
+const {ipcRenderer} = require('electron');
+
+//app
+const app = electron.app;
+
+
+
 //browser window
 const BrowserWindow = require("electron").remote.BrowserWindow;
 
@@ -18,8 +26,16 @@ require('angular');
 //jquery for dom manip
 const $ = require('jquery');
 
+//get generic app path
+const APPLICATION_PATH = ipcRenderer.sendSync("request-path");
+
 //personal processing lib
 const dew = new (require('./DEW.js').DEW)();
+
+//set application root
+dew.SetRootDir(APPLICATION_PATH);
+
+const log = new (require('./DEW.js').Logger)();
 
 //load script hooks
 let lstScriptHooks = dew.LoadScripts();
@@ -37,6 +53,7 @@ const AUG_ARGS = {
 */
 var indexApp = angular.module('indexApp', []).controller('indexController', function($scope)
 {	
+
 
 	/*		Angular Vars		*/
 	$scope.oViewBag = {
@@ -102,7 +119,7 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 	}
 
 	/*
-		Event to handle input commands
+		Event to handle fs
 	*/
 	$scope.HandleInputCommandEvent = function(oEvent)
 	{
@@ -189,6 +206,10 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 					$scope.oViewBag.sInputIntellisense = `${lstCommand[0]} ${sCommandNamePrediction}`;
 				else
 					$scope.oViewBag.sInputIntellisense = "";
+
+				//clear up the view
+				if($scope.oViewBag.sInput.length > 20)
+					$scope.oViewBag.sOutput = "";
 			}
 		}
 		else
@@ -202,6 +223,8 @@ var indexApp = angular.module('indexApp', []).controller('indexController', func
 	*/
 	$scope.HandleInputCommand = function(sCommand)
 	{
+		log.FLog(`Handling input command - '${sCommand}'`);
+
 		let lstArgs = sCommand.match(/(?:[^\s"]+|"[^"]*")+/g);
 
 		//if we received only 1 argument

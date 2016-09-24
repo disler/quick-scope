@@ -1,4 +1,7 @@
 const electron = require('electron')
+
+const {ipcMain} = require('electron');
+
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
@@ -24,6 +27,8 @@ fs = require('fs');
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+
+
 function createWindow () {
 
   // Create the browser window.
@@ -44,7 +49,10 @@ function createWindow () {
 
   // Open the DevTools.
   if(true === oConfig.bDevConsole)
+  {
     mainWindow.webContents.openDevTools()
+  }
+
 
   //register alt+o to focus this app
   globalShortcut.register('alt+o', function()
@@ -61,6 +69,11 @@ function createWindow () {
 
     console.log("app closing");
   })
+
+  ipcMain.on('request-path', (event, args) => {
+    event.returnValue = app.getPath("userData");
+  })
+
 }
 
 
